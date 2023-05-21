@@ -8,6 +8,8 @@ from PIL import Image
 import subprocess
 import ffmpeg
 
+summary = []
+
 def get_mid_time(timestamps):
     start_time, end_time = [datetime.datetime.strptime(t, '%H:%M:%S,%f') for t in timestamps.split(" --> ")]
     mid_time = start_time + (end_time - start_time)/2
@@ -132,7 +134,6 @@ def main():
     # Sort markdown files
     sorted_md_files = sorted(md_files, key=lambda x: int(x.split(' - ')[0]))
 
-
     # Add "previous" and "next" links to each markdown file
     for i, md_file in enumerate(sorted_md_files):
         prev_file = sorted_md_files[i-1] if i > 0 else None
@@ -144,20 +145,32 @@ def main():
 
             # Check and remove existing pagination
             if "previous" in lines[0].lower() or "next" in lines[0].lower():
-                del lines[0]
+                del lines[0:2]
             if "previous" in lines[-1].lower() or "next" in lines[-1].lower():
-                del lines[-1]
+                del lines[-2:]
             f.seek(0)
             f.truncate()
 
             f.write(f'Previous: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)\n\n' + ''.join(lines))
             f.write(f'\n\nPrevious: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)')
-    
-    # Create index.md
-    with open(os.path.join(output_dir, 'readme.md'), 'w') as f:
-        for md_file in sorted_md_files:
-            f.write(f"* [{md_file}](<./notes/{md_file}>)\n")
 
+    # Create index.md
+    md_file_sources = {os.path.splitext(os.path.basename(v))[0]: os.path.relpath(os.path.dirname(v), input_dir) for v in video_files}
+
+    with open(os.path.join(output_dir, 'readme.md'), 'w') as f:
+        first = True
+        curr_section = ""
+        for md_file in sorted_md_files:
+            title = md_file[:-3]
+            dir_name = md_file_sources[title]
+            if first:
+                print(dir_name)
+            if dir_name != curr_section:
+                curr_section = dir_name
+                f.write(f'\n## {dir_name}\n\n')
+
+            f.write(f"* [{md_file}](<./notes/{md_file}>)\n")
+            first = False
     
     print("\n")
 
