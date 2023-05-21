@@ -8,8 +8,6 @@ from PIL import Image
 import subprocess
 import ffmpeg
 
-summary = []
-
 def get_mid_time(timestamps):
     start_time, end_time = [datetime.datetime.strptime(t, '%H:%M:%S,%f') for t in timestamps.split(" --> ")]
     mid_time = start_time + (end_time - start_time)/2
@@ -149,10 +147,11 @@ def main():
                 del lines[0]
             if "previous" in lines[-1].lower() or "next" in lines[-1].lower():
                 del lines[-1]
-            f.seek(0, 0)
-            f.write(f'Previous: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)\n\n' + lines)
-            f.write(f'\n\nPrevious: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)')
+            f.seek(0)
+            f.truncate()
 
+            f.write(f'Previous: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)\n\n' + ''.join(lines))
+            f.write(f'\n\nPrevious: [{prev_file if prev_file else "None"}](<{prev_file}>)  |  Next: [{next_file if next_file else "None"}](<{next_file}>)')
     
     # Create index.md
     with open(os.path.join(output_dir, 'readme.md'), 'w') as f:
