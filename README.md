@@ -1,4 +1,4 @@
-#Video Lecture Notes Generator
+# Video Lecture Notes Generator
 
 This Python script automates the creation of lecture notes from video lectures and their associated subtitle files. For each video-subtitle pair, it generates a markdown file containing screenshots from the video, along with corresponding text from the subtitle file.
 
